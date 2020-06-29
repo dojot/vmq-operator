@@ -369,7 +369,7 @@ func makeStatefulSetSpec(instance *vernemqv1alpha1.VerneMQ) (*appsv1.StatefulSet
 						Name:            vernemqName,
 						Image:           vernemqImage,
 						Ports:           ports,
-						Command:         vernemqCommand,
+						Args:         	 vernemqCommand,
 						VolumeMounts:    vernemqVolumeMounts,
 						LivenessProbe:   livenessProbe,
 						ReadinessProbe:  readinessProbe,
