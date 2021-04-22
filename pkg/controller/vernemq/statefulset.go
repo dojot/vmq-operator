@@ -131,7 +131,6 @@ func makeStatefulSetSpec(instance *vernemqv1alpha1.VerneMQ) (*appsv1.StatefulSet
 	curl -L http://$VMQ_BUNDLER_HOST/bundle.tar.gz | tar xvz -C plugins && \
 	eval "echo \"$(echo $VERNEMQ_CONF | base64 -d)\"" > /vernemq/etc/vernemq.conf && \
 	eval "echo \"$(echo $VM_ARGS | base64 -d)\"" > /vernemq/etc/vm.args && \
-	/vernemq/vmq_dojot.sh && \
 	/vernemq/bin/vernemq console -noshell -noinput`}
 
 	vernemqPreStopCommand := []string{"/bin/sh", "-c", fmt.Sprintf(`
@@ -230,6 +229,12 @@ func makeStatefulSetSpec(instance *vernemqv1alpha1.VerneMQ) (*appsv1.StatefulSet
 				},
 			},
 		},
+		{
+			Name: "vernemq-certs",
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{},
+			},
+		},
 	}
 
 	volName := volumeName(instance.Name)
@@ -252,6 +257,17 @@ func makeStatefulSetSpec(instance *vernemqv1alpha1.VerneMQ) (*appsv1.StatefulSet
 		{
 			Name:      "vernemq-clusterview",
 			MountPath: fmt.Sprintf("%s/clusterview", configmapsDir),
+		},
+		{
+			Name:      "vernemq-certs",
+			MountPath: "/vernemq/cert",
+		},
+	}
+
+	sidecarVolumeMounts := []v1.VolumeMount{
+		{
+			Name:      "vernemq-certs",
+			MountPath: "/vernemq/cert",
 		},
 	}
 
@@ -339,6 +355,8 @@ func makeStatefulSetSpec(instance *vernemqv1alpha1.VerneMQ) (*appsv1.StatefulSet
 		vernemqImage = *instance.Spec.Image
 	}
 
+	sidecarImage := fmt.Sprintf("%s:%s", instance.Spec.SidecarBaseImage, instance.Spec.Tag)
+
 	UID := int64(10000)
 	vmqContainerSecurityContext := v1.SecurityContext{
 		RunAsUser:  &UID,
@@ -347,6 +365,7 @@ func makeStatefulSetSpec(instance *vernemqv1alpha1.VerneMQ) (*appsv1.StatefulSet
 
 	additionalContainers := instance.Spec.Containers
 	envVars := instance.Spec.Env
+	sidecarEnvVars := instance.Spec.SicecarEnv
 
 	return &appsv1.StatefulSetSpec{
 		ServiceName:         serviceName(instance.Name),
@@ -365,6 +384,12 @@ func makeStatefulSetSpec(instance *vernemqv1alpha1.VerneMQ) (*appsv1.StatefulSet
 			},
 			Spec: v1.PodSpec{
 				Containers: append([]v1.Container{
+					{
+						Name:  "iotagent-mqtt-cert-sidecar",
+						Image: sidecarImage,
+						VolumeMounts:    sidecarVolumeMounts,
+						Env: sidecarEnvVars,
+					},	
 					{
 						Name:            vernemqName,
 						Image:           vernemqImage,
