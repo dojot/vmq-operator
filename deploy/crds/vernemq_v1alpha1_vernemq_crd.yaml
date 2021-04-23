@@ -28,6 +28,8 @@ spec:
               type: object
             baseImage:
               type: string
+            sidecarBaseImage:
+              type: string  
             bundlerBaseImage:
               type: string
             bundlerImage:
@@ -177,6 +179,10 @@ spec:
               items:
                 type: object
               type: array
+            sidecarEnv:
+              items:
+                type: object
+              type: array  
             externalPlugins:
               items:
                 properties:

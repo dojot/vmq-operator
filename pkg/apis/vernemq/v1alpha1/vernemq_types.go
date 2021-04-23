@@ -37,6 +37,8 @@ type VerneMQSpec struct {
 	Image *string `json:"image,omitempty"`
 	// Base image to use for a VerneMQ deployment.
 	BaseImage string `json:"baseImage,omitempty"`
+	// Base image to use for a VerneMQ sidecar deployment.
+	SidecarBaseImage string `json:"sidecarBaseImage,omitempty"`
 	// An optional list of references to secrets in the same namespace
 	// to use for pulling vernemq images from registries
 	// see http://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod
@@ -79,6 +81,8 @@ type VerneMQSpec struct {
 	// Defines additional environment variables for the VerneMQ container
 	// The environment variables can be used to template the VMQConfig and VMArgs
 	Env []v1.EnvVar `json:"env,omitempty"`
+	// Defines additional environment variables for the VerneMQ sidecar container
+	SicecarEnv []v1.EnvVar `json:"sidecarEnv,omitempty"`
 	// Version of the Plugin Bundler to be deployed
 	BundlerVersion string `json:"bundlerVersion,omitempty"`
 	// Tag of Plugin Bundler container image to be deployed. Defaults to the value of `bundlerVersion`.
